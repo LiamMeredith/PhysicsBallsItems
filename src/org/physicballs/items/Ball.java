@@ -13,9 +13,6 @@ import java.awt.RenderingHints;
 import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import physicballs.Physics;
-import physicballs.Space;
-import rules.SpaceRules;
 
 /**
  *
@@ -40,9 +37,8 @@ public class Ball extends Item implements Runnable, Serializable {
 
     long time;
 
-    protected boolean active = true;
+    private boolean active = true;
 
-    protected Space parent;
     /**
      * Main constructor
      *
@@ -50,19 +46,18 @@ public class Ball extends Item implements Runnable, Serializable {
      * @param y
      * @param speed
      * @param radius
-     * @param parent
      */
-    public Ball(float x, float y, float speed, float accel, float radius, float mass, float angle, Space parent, String type) {
+    public Ball(float x, float y, float speed, float accel, float radius, float mass, float angle, String type) {
         super(x,y,mass,Color.BLUE);
         speedx = (float) (speed * Math.cos(Math.toRadians(angle)));
         speedy = (float) (-speed * Math.sin(Math.toRadians(angle)));
         accelx = (float) (accel * Math.cos(Math.toRadians(angle)));
         accely = (float) (-accel * Math.sin(Math.toRadians(angle)));
         this.radius = radius;
-        this.parent = parent;
         setType(type);
         color();
     }
+    
     public Ball(float posX, float posY, float mass, Color color) {
         super(posX, posY, mass, color);
     }
@@ -120,17 +115,7 @@ public class Ball extends Item implements Runnable, Serializable {
      */
     @Override
     public void run() {
-        time = System.nanoTime();
-        while (true) {
-            Physics.ballMovement(this, parent);
-            do {
-                try {
-                    Thread.sleep(15);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(Ball.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } while (!active);
-        }
+
     }
 
     /**
@@ -160,13 +145,6 @@ public class Ball extends Item implements Runnable, Serializable {
         this.radius = radius;
     }
 
-    public Space getParent() {
-        return parent;
-    }
-
-    public void setParent(Space parent) {
-        this.parent = parent;
-    }
     public void stopBall() {
         active = false;
     }
@@ -197,6 +175,10 @@ public class Ball extends Item implements Runnable, Serializable {
 
     public float getMaxspeed() {
         return maxspeed;
+    }
+    
+    public boolean isActive(){
+        return this.active;
     }
 
 }
