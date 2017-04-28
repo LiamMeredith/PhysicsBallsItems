@@ -6,60 +6,101 @@
 package org.physicballs.items;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import physicballs.Physics;
+import physicballs.Space;
+import rules.SpaceRules;
 
 /**
  *
  * @author Liam-Portatil
  */
-public class Ball extends Thread implements Serializable {
-
-    protected float x;
-    protected float y;
+public class Ball extends Item implements Runnable, Serializable {
 
     protected float speedx;
     protected float speedy;
+    protected float maxspeed = 50;
+
+    protected float accelx;
+    protected float accely;
 
     protected float radius;
-    protected float mass;
-    
+
+    public enum ballType {
+        NORMAL, EXPLOSIVE, BULLET;
+    }
+
+    ballType type;
+
+    long time;
+
     protected boolean active = true;
-    
-    protected Color color;
 
-
+    protected Space parent;
     /**
      * Main constructor
      *
      * @param x
      * @param y
-     * @param speedx
-     * @param speedy
+     * @param speed
      * @param radius
      * @param parent
      */
-    public Ball(float x, float y, float speedx, float speedy, float radius, float mass) {
-        this.x = x;
-        this.y = y;
-        this.speedx = speedx;
-        this.speedy = speedy;
+    public Ball(float x, float y, float speed, float accel, float radius, float mass, float angle, Space parent, String type) {
+        super(x,y,mass,Color.BLUE);
+        speedx = (float) (speed * Math.cos(Math.toRadians(angle)));
+        speedy = (float) (-speed * Math.sin(Math.toRadians(angle)));
+        accelx = (float) (accel * Math.cos(Math.toRadians(angle)));
+        accely = (float) (-accel * Math.sin(Math.toRadians(angle)));
         this.radius = radius;
-        this.mass = mass;
-        this.color = Color.BLUE;
+        this.parent = parent;
+        setType(type);
+        color();
+    }
+    public Ball(float posX, float posY, float mass, Color color) {
+        super(posX, posY, mass, color);
     }
 
-    public Ball(float radius) {
-        this.radius = radius;
-    }
-    
-    
+    public Ball() {
 
-    public void movement() {
-        x += speedx;
-        y += speedy;
+    }
+
+    public void color() {
+        switch (type) {
+            case NORMAL:
+                this.setColor(Color.BLUE);
+                break;
+            case EXPLOSIVE:
+                this.setColor(Color.RED);
+                break;
+            case BULLET:
+                this.setColor(Color.ORANGE);
+                break;
+        }
+    }
+
+    public ballType getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        switch (type) {
+            case "N":
+                this.type = ballType.NORMAL;
+                break;
+            case "E":
+                this.type = ballType.EXPLOSIVE;
+                break;
+            case "B":
+                this.type = ballType.BULLET;
+                break;
+        }
     }
 
     /**
@@ -68,8 +109,10 @@ public class Ball extends Thread implements Serializable {
      *
      */
     public void draw(Graphics g) {
-        g.setColor(color);
-        g.fillOval((int) (x - radius), (int) (y - radius), (int) radius * 2, (int) radius * 2);
+        Graphics2D gg = (Graphics2D) g;
+        gg.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        gg.setColor(color);
+        gg.fillOval((int) (posX - radius), (int) (posY - radius), (int) radius * 2, (int) radius * 2);
     }
 
     /**
@@ -77,36 +120,22 @@ public class Ball extends Thread implements Serializable {
      */
     @Override
     public void run() {
-        while (active) {
-            try {
-//                parent.checkCollision(this);
-                movement();
-                Thread.sleep(10);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Ball.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        time = System.nanoTime();
+        while (true) {
+            Physics.ballMovement(this, parent);
+            do {
+                try {
+                    Thread.sleep(15);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Ball.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } while (!active);
         }
     }
 
     /**
      * Getters and Setters
      */
-    public float getX() {
-        return x;
-    }
-
-    public void setX(float x) {
-        this.x = x;
-    }
-
-    public float getY() {
-        return y;
-    }
-
-    public void setY(float y) {
-        this.y = y;
-    }
-
     public float getSpeedx() {
         return speedx;
     }
@@ -131,33 +160,43 @@ public class Ball extends Thread implements Serializable {
         this.radius = radius;
     }
 
-//    public Space getParent() {
-//        return parent;
-//    }
-//
-//    public void setParent(Space parent) {
-//        this.parent = parent;
-//    }
-
-    public float getMass() {
-        return mass;
+    public Space getParent() {
+        return parent;
     }
 
-    public void setMass(float mass) {
-        this.mass = mass;
+    public void setParent(Space parent) {
+        this.parent = parent;
     }
-
-    public Color getColor() {
-        return color;
-    }
-
-    public void setColor(Color color) {
-        this.color = color;
-    }
-    
-    public void stopBall(){
+    public void stopBall() {
         active = false;
-    } 
-    
+    }
+
+    public void currentTime() {
+        time = System.nanoTime();
+    }
+
+    public long getTime() {
+        return time;
+    }
+
+    public float getAccelx() {
+        return accelx;
+    }
+
+    public void setAccelx(float accelx) {
+        this.accelx = accelx;
+    }
+
+    public float getAccely() {
+        return accely;
+    }
+
+    public void setAccely(float accely) {
+        this.accely = accely;
+    }
+
+    public float getMaxspeed() {
+        return maxspeed;
+    }
 
 }
