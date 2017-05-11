@@ -6,11 +6,9 @@
 package org.physicballs.items;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,16 +16,17 @@ import java.util.logging.Logger;
  *
  * @author Liam-Portatil
  */
-public class Ball extends Item implements Runnable, Serializable {
+public class Ball extends Item {
 
-    protected float speedx;
-    protected float speedy;
-    protected float maxspeed = 50;
+    private float speedx;
+    private float speedy;
+    private float maxspeed = 20;
 
-    protected float accelx;
-    protected float accely;
+    private float accel = 0;
 
-    protected float radius;
+    private boolean stoped = false;
+
+    private float radius;
 
     public enum ballType {
         NORMAL, EXPLOSIVE, BULLET;
@@ -35,9 +34,9 @@ public class Ball extends Item implements Runnable, Serializable {
 
     ballType type;
 
-    long time;
+    private long time;
 
-    private boolean active = true;
+    protected boolean active = true;
 
     /**
      * Main constructor
@@ -46,24 +45,28 @@ public class Ball extends Item implements Runnable, Serializable {
      * @param y
      * @param speed
      * @param radius
+     * @param parent
      */
-    public Ball(float x, float y, float speed, float accel, float radius, float mass, float angle, String type) {
-        super(x,y,mass,Color.BLUE);
+    public Ball(float x, float y, float speed, float accel, float radius, float angle, String type) {
+        super(x, y, radius, Color.BLUE);
         speedx = (float) (speed * Math.cos(Math.toRadians(angle)));
         speedy = (float) (-speed * Math.sin(Math.toRadians(angle)));
-        accelx = (float) (accel * Math.cos(Math.toRadians(angle)));
-        accely = (float) (-accel * Math.sin(Math.toRadians(angle)));
+        this.accel = accel;
         this.radius = radius;
         setType(type);
         color();
     }
-    
-    public Ball(float posX, float posY, float mass, Color color) {
-        super(posX, posY, mass, color);
+
+    public Ball(float x, float y, float speedx, float speedy, float radius, String type) {
+        super(x, y, radius, Color.BLUE);
+        this.speedx = speedx;
+        this.speedy = speedy;
+        this.radius = radius;
+        setType(type);
+        color();
     }
 
     public Ball() {
-
     }
 
     public void color() {
@@ -111,14 +114,6 @@ public class Ball extends Item implements Runnable, Serializable {
     }
 
     /**
-     * Main ball life cicle
-     */
-    @Override
-    public void run() {
-
-    }
-
-    /**
      * Getters and Setters
      */
     public float getSpeedx() {
@@ -157,28 +152,41 @@ public class Ball extends Item implements Runnable, Serializable {
         return time;
     }
 
-    public float getAccelx() {
-        return accelx;
+    public float getAccel() {
+        return accel;
     }
 
-    public void setAccelx(float accelx) {
-        this.accelx = accelx;
-    }
-
-    public float getAccely() {
-        return accely;
-    }
-
-    public void setAccely(float accely) {
-        this.accely = accely;
+    public void setAccel(float accel) {
+        this.accel = accel;
     }
 
     public float getMaxspeed() {
         return maxspeed;
     }
-    
-    public boolean isActive(){
-        return this.active;
+
+    public void setMaxspeed(float maxspeed) {
+        this.maxspeed = maxspeed;
+    }
+
+    public double getSpeed() {
+        return Math.hypot(speedx, speedy);
+    }
+
+    public void setSpeed(float speed, float angle) {
+        speedx = (float) (speed * Math.cos(Math.toRadians(angle)));
+        speedy = (float) (speed * Math.sin(Math.toRadians(angle)));
+    }
+
+    public float getAngle() {
+        return (float) Math.toDegrees(Math.atan2(speedy, speedx));
+    }
+
+    public boolean isStoped() {
+        return stoped;
+    }
+
+    public void setStoped(boolean stoped) {
+        this.stoped = stoped;
     }
 
 }
